@@ -54,9 +54,9 @@ webSocket.on('connection', function(client) {
  */
 var kinectTransporter = net.createServer(function(kinect){
     var buff = "";
-    kinect.on("data", function(data){
-        console.log(data);
-        webSocket.broadcast(data);
+    kinect.on("data", function(d){
+        console.log(d.toString());
+        webSocket.broadcast(d.toString());
     });
 
     kinect.on('error', function (err) {
