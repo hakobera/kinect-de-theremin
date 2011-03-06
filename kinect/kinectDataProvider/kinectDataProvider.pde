@@ -14,7 +14,7 @@ void setup() {
   size(640, 480);
   background(204);
   stroke(0);
-  frameRate(5);
+  frameRate(10);
 
   kinect = new Kinect(this);
   tracker = new KinectTracker();

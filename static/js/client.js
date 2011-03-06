@@ -27,7 +27,7 @@ $(function() {
 
     var WIDTH = 640;
     var HEIGHT = 480;
-    var FRAME_INTERVAL = 1000;
+    var FRAME_INTERVAL = 200;
 
     var screen = document.getElementById('screen');
     var drawContext = screen.getContext('2d');
@@ -75,7 +75,7 @@ $(function() {
     });
 
     socket.on('message', function(msg) {
-        console.log(msg);
+        //console.log(msg);
         point = JSON.parse(msg);
         // console.log(msg);
     });

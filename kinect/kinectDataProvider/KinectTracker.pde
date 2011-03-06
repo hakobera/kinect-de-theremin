@@ -14,7 +14,7 @@ class KinectTracker {
 
   KinectTracker() {
     kinect.start();
-    kinect.enableRGB(true);
+    kinect.enableRGB(false);
     kinect.enableDepth(true);
 
     kinect.processDepthImage(false);
