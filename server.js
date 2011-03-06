@@ -18,8 +18,13 @@ app.set('view engine', 'ejs');
 app.set('view options', { layout: false });
 
 app.get('/', function(req, res) {
-    console.log('/');
+    console.log('get index');
     res.render('index', { port: port });
+});
+
+app.get('/termin', function(req, res) {
+    console.log('get termin');
+    res.render('termin', { port: port });
 });
 
 app.listen(port);
@@ -30,8 +35,7 @@ app.listen(port);
 var webSocket = socketIo.listen(app);
 webSocket.on('connection', function(client) {
 
-    console.log('connected');
-    console.log(client);
+    console.log('connected: ' + client.sessionId);
 
     /**
      * メッセージ受信時
@@ -55,8 +59,14 @@ webSocket.on('connection', function(client) {
 var kinectTransporter = net.createServer(function(kinect){
     var buff = "";
     kinect.on("data", function(d){
-        console.log(d.toString());
-        webSocket.broadcast(d.toString());
+        var s = d.toString();
+        var v = s.split(',');
+        var o = {
+            x: v[0],
+            y: v[1]
+        };
+        console.log(o);
+        webSocket.broadcast(JSON.stringify(o));
     });
 
     kinect.on('error', function (err) {
