@@ -1,4 +1,5 @@
 $(function() {
+    // setup
     var socket = new io.Socket(null, { port: port });
     var loopTimer;
 
@@ -9,28 +10,64 @@ $(function() {
         socket.connect();
     } catch(e) {
         alert(e.message);
+        return;
     }
 
-    Termin.initialize();
+    var isAudioDataApiEnabled = function () {
+        var a = new Audio();
+        if (typeof a.mozSetup == 'undefined') return false;
+        if (typeof a.mozWriteAudio == 'undefined') return false;
+        return true;
+    };
+
+    if (!isAudioDataApiEnabled()) {
+        alert('Your browser not support Audio Data API.');
+        return;
+    }
+
+    var WIDTH = 640;
+    var HEIGHT = 480;
+    var FRAME_INTERVAL = 1000;
+
+    var screen = document.getElementById('screen');
+    var drawContext = screen.getContext('2d');
+    var point = { x: 0, y: 0 };
+    var isPlaying = false;
+
+    screen.width = WIDTH;
+    screen.height = HEIGHT;
+
+    Termin.initialize({
+        sampleRate: 22050,
+        unitTime: FRAME_INTERVAL / 1000
+    });
+
+    var draw = function() {
+        drawContext.fillStyle = '#000';
+        drawContext.fillRect(0, 0, WIDTH, HEIGHT);
+
+        drawContext.fillStyle = '#fff';
+        drawContext.fillRect(point.x, point.y, 10, 10);
+
+        if (isPlaying) {
+            var index = Math.floor((point.x / WIDTH) * codes.length);
+            var scale = codes[index];
+            console.log(scale);
+            Termin.startAudio({
+               scale: scale,
+               amp: 1
+            });
+        }
+    };
+
+    setInterval(draw, FRAME_INTERVAL);
 
     $('#play').click(function(event) {
-        event.preventDefault();
-        loopTimer = setInterval(function() {
-            var scale = codes[codeIndex];
-            codeIndex += 1;
-            if (codeIndex >= codes.length) {
-                codeIndex = 0;
-            }
-
-            Termin.startAudio(scale);
-        }, Termin.getUnitSec());
+        isPlaying = true;
     });
 
     $('#stop').click(function(event) {
-        event.preventDefault();
-        if (loopTimer) {
-            clearInterval(loopTimer);
-        }
+        isPlaying = false;
     });
 
     socket.on('connect', function() {
@@ -39,8 +76,7 @@ $(function() {
 
     socket.on('message', function(msg) {
         console.log(msg);
-        var pt = JSON.parse(msg);
-        $('#data').append($('<li>').html("x=" + pt.x + ", y=" + pt.y));
+        point = JSON.parse(msg);
         // console.log(msg);
     });
 

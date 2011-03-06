@@ -6,10 +6,55 @@
 (function(global) {
 
     /**
+     * AudioUnit
+     *
+     * @param conf
+     * @constructor
+     */
+    var AudioUnit = function(conf) {
+        this.channel = conf.channel;
+        this.sampleRate = conf.sampleRate;
+        this.unitTime = conf.unitTime;
+
+        this.audio = new Audio();
+        this.audio.mozSetup(this.channel, this.sampleRate);
+
+        console.log(this.sampleRate);
+        console.log(this.unitTime);
+        this.bufferSize = Math.ceil(this.sampleRate * this.unitTime);
+        this.buffer = new Float32Array(this.bufferSize);
+
+        console.log(this.bufferSize);
+    };
+
+    AudioUnit.prototype = {
+
+        /**
+         * Play sound.
+         *
+         * @param {Number} freq frequency
+         */
+        play: function(freq) {
+            var i = 0,
+                size = this.bufferSize,
+                buf = this.buffer;
+
+            for(i = 0; i < size; i += 1){
+                buf[i] = Math.sin(freq * i);
+            }
+
+            this.audio.mozWriteAudio([]);
+            this.audio.mozWriteAudio(buf);
+            this.audio.play();
+        }
+
+    };
+
+    /**
      * 音階に対応した周波数。
      * @property
      */
-    var scales = {
+    var SCALES = {
         C3:     261,
         Cp3:    277,
         D3:     293,
@@ -30,85 +75,90 @@
      */
     var freq;
 
-    /**
-     * サンプリングレート (Hz)
-     * @property
-     */
-    var sampleRate = 44100;
 
     /**
-     * Audio
-     * @property
+     * Audio トラック数
      */
-    var audio;
+    var AUDIO_UNIT_NUM = 8;
+
 
     /**
-     * Audio buffer
+     * Audio ユニット配列
+     * @type {Array}
      */
-    var buffer;
+    var audioUnits = [];
 
     /**
-     * Audio buffer size.
-     * @private
+     * 現在使用している Audio オブジェクトのインデックス
      */
-    var bufferSize;
+    var audioUnitIndex = 0;
 
     /**
-     * 単音の発生秒数
+     * 利用可能な Audio オブジェクトを返します。
      */
-    var unitSec = 1;
+    var getAvailableAudioUnit = function() {
+        audioUnitIndex += 1;
+        if (audioUnitIndex >= AUDIO_UNIT_NUM) {
+            audioUnitIndex = 0;
+        }
+        console.log(audioUnitIndex);
+        return audioUnits[audioUnitIndex];
+    }
 
     /**
-     * Initialize audio.
-     * @param {Number} ch Number of channels
-     * @param {Number} rate Sampling rate
+     * Create AudioUnit instance and return it.
+     *
+     * @param {Number} ch Channel
+     * @param {Number} sampleRate sample rate (Hz)
+     * @return {AudioUnit} Audio unit
      */
-    var setupAudio = function(ch, rate) {
-        bufferSize = Math.ceil(rate * unitSec);
-        audio = new Audio();
-        audio.mozSetup(ch, rate);
-        buffer = new Float32Array(bufferSize);
+    var createAudioUnit = function(ch, sampleRate, unitTime) {
+        var unit = new AudioUnit({
+            channel: ch,
+            sampleRate: sampleRate,
+            unitTime: unitTime
+        });
+        return unit;
     };
 
     /**
-     * Global object
+     * @singleton
      */
-    Termin = {
+    var Termin = {
 
         /**
          * 初期化処理。
          */
-        initialize: function() {
-            var k;
+        initialize: function(conf) {
+            var i, k,
+                channel = 1,
+                sampleRate = conf.sampleRate,
+                unitTime = conf.unitTime;
 
-            setupAudio(1, sampleRate);
-
-            freq = {};
-            for (k in scales) {
-                freq[k] = 2 * Math.PI * scales[k] / sampleRate;
+            for (i = 0; i < AUDIO_UNIT_NUM; i += 1) {
+                audioUnits[i] = createAudioUnit(channel, sampleRate, unitTime);
             }
 
+            freq = {};
+            for (k in SCALES) {
+                freq[k] = 2 * Math.PI * SCALES[k] / sampleRate;
+            }
         },
 
         /**
          * サウンド再生
          */
-        startAudio: function(scale) {
-            var k = freq[scale];
-            for(var i = 0; i < bufferSize; i += 1){
-                buffer[i] = Math.sin(k * i);
-            }
-            audio.mozWriteAudio(buffer);
-            audio.play();
-        },
+        startAudio: function(conf) {
+            var scale = conf.scale,
+                f = freq[scale],
+                unit = getAvailableAudioUnit();
 
-        /**
-         * 単位ミリ秒数を返します。
-         */
-        getUnitSec: function() {
-            return Math.ceil(unitSec * 1000);
+            unit.play(f);
         }
 
     };
+
+    // Export to global.
+    global.Termin = Termin;
     
 })(this);

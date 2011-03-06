@@ -11,10 +11,10 @@ int data[];
 int count = 0;
 
 void setup() {
-  size(640, 520);
+  size(640, 480);
   background(204);
   stroke(0);
-  frameRate(1);
+  frameRate(5);
 
   kinect = new Kinect(this);
   tracker = new KinectTracker();
@@ -27,10 +27,23 @@ void draw() {
   tracker.display();
 
   PVector v2 = tracker.getLerpedPos();
-
+  
   client.write(v2.x + "," + v2.y);
 }
 
+void keyPressed() {
+  int t = tracker.getThreshold();
+  if (key == CODED) {
+    if (keyCode == UP) {
+      t+=5;
+      tracker.setThreshold(t);
+    } 
+    else if (keyCode == DOWN) {
+      t-=5;
+      tracker.setThreshold(t);
+    }
+  }
+}
 
 void stop() {
   tracker.quit();

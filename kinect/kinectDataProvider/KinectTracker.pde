@@ -2,7 +2,7 @@ class KinectTracker {
 
   int kw = 640;
   int kh = 480;
-  int threshold = 745;
+  int threshold = 600;
 
   PVector loc;
 
@@ -14,9 +14,10 @@ class KinectTracker {
 
   KinectTracker() {
     kinect.start();
+    kinect.enableRGB(true);
     kinect.enableDepth(true);
 
-    kinect.processDepthImage(true);
+    kinect.processDepthImage(false);
 
     display = createImage(kw, kh, PConstants.RGB);
 
@@ -65,7 +66,7 @@ class KinectTracker {
   }
   
   void display() {
-    PImage img = kinect.getDepthImage();
+    PImage img = kinect.getVideoImage();
     if (depth == null || img == null) {
       return;
     }
@@ -95,6 +96,10 @@ class KinectTracker {
   
   void setThreshold(int t) {
     threshold = t;
+  }
+  
+  int getThreshold() {
+    return threshold;
   }
   
 }
