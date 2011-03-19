@@ -124,26 +124,24 @@
                 sampleRate = conf.sampleRate,
                 unitTime = conf.unitTime;
 
-            for (k in SCALES) {
-                freq = SCALES[k];
+            var N = 12 * 5;
+            for (var j = 0; j < N; ++j) {
+                var freq = Math.ceil(Math.pow(2, (j / 12.0)) * 220.0);
                 samples = new Samples({
                     freq: freq,
                     sampleRate: sampleRate,
                     unitTime: unitTime
                 });
                 audioUnit = createAudioUnit(channel, sampleRate, unitTime, samples);
-                audioUnits[k] = audioUnit;
+                audioUnits[j] = audioUnit;
             }
         },
 
         /**
          * サウンド再生
          */
-        startAudio: function(conf) {
-            var scale = conf.scale,
-                audioUnit = audioUnits[scale];
-
-            // TODO: 本当はバッファリングを実装して、リングバッファにデータを書き込む処理の方が良い
+        startAudio: function(i) {
+            var audioUnit = audioUnits[i];
             audioUnit.play();
         }
 

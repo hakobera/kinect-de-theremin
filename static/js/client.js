@@ -1,10 +1,6 @@
 $(function() {
     // setup
     var socket = new io.Socket(null, { port: port });
-    var loopTimer;
-
-    var codeIndex = 0;
-    var codes = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4' ];
 
     try {
         socket.connect();
@@ -34,29 +30,38 @@ $(function() {
     var point = { x: 0, y: 0 };
     var isPlaying = false;
 
+    var hand = new Image();
+    var bg = new Image();
+
+    hand.src = '/images/hand12.gif';
+    bg.src = '/images/t01.jpg';
+
     screen.width = WIDTH;
     screen.height = HEIGHT;
+
 
     Termin.initialize({
         sampleRate: 22050,
         unitTime: FRAME_INTERVAL / 1000
     });
 
+    var pointToIndex = function(pt) {
+        var nx = Math.floor(12 * (pt.x / WIDTH));
+        var ny = Math.floor(5  * (pt.y / HEIGHT));
+        return 12 * ny + nx;
+    };
+
     var draw = function() {
         drawContext.fillStyle = '#000';
         drawContext.fillRect(0, 0, WIDTH, HEIGHT);
 
-        drawContext.fillStyle = '#fff';
-        drawContext.fillRect(point.x, point.y, 10, 10);
+        drawContext.drawImage(bg, 0, 0, WIDTH, HEIGHT);
+        drawContext.drawImage(hand, point.x, point.y - 100);
 
         if (isPlaying) {
-            var index = Math.floor((point.x / WIDTH) * codes.length);
-            var scale = codes[index];
-            console.log(scale);
-            Termin.startAudio({
-               scale: scale,
-               amp: 1
-            });
+            var index = pointToIndex(point);
+            console.log(index);
+            Termin.startAudio(index);
         }
     };
 
